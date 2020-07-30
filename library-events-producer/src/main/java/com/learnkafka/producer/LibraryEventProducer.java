@@ -53,9 +53,10 @@ public class LibraryEventProducer {
     /**
      * Send to a specific topic [library-events]
      * @param libraryEvent
+     * @return
      * @throws JsonProcessingException
      */
-    public void sendLibraryEventTopic(LibraryEvent libraryEvent) throws JsonProcessingException {
+    public ListenableFuture<SendResult<Integer, String>> sendLibraryEventTopic(LibraryEvent libraryEvent) throws JsonProcessingException {
 
         var key = libraryEvent.getLibraryEventId();
         var value = mapper.writeValueAsString(libraryEvent);
@@ -74,6 +75,8 @@ public class LibraryEventProducer {
                 handleSuccess(key, value, result);
             }
         });
+
+        return listenableFuture;
     }
 
     public SendResult<Integer, String> sendLibraryEventSynchronous(LibraryEvent libraryEvent)
