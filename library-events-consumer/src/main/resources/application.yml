@@ -12,3 +12,13 @@ spring:
             key-deserializer: org.apache.kafka.common.serialization.IntegerDeserializer
             value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
             group-id: library-event-consumer
+    datasource:
+        url: jdbc:h2:mem:localdb
+        driver-class-name: org.h2.Driver
+    jpa:
+        database: h2
+        database-platform: org.hibernate.dialect.H2Dialect
+        generate-ddl: true
+    h2:
+        console:
+          enabled: true
