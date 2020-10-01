@@ -1,7 +1,10 @@
 package com.learnkafka.consumer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.learnkafka.domain.Book;
 import com.learnkafka.domain.LibraryEvent;
+import com.learnkafka.domain.LibraryEventType;
 import com.learnkafka.repository.LibraryEventsRepository;
 import com.learnkafka.service.LibraryEventsService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -54,6 +57,9 @@ public class LibraryEventsConsumerTest {
     @Autowired
     private LibraryEventsRepository libraryEventsRepository;
 
+    @Autowired
+    private ObjectMapper mapper;
+
     @BeforeEach
     void setUp() {
         for (var messageListenerContainer : endpointRegistry.getListenerContainers()) {
@@ -83,6 +89,31 @@ public class LibraryEventsConsumerTest {
             assert libraryEvent.getLibraryEventId() != null;
             assertEquals(libraryEvent.getLibraryEventId(), 456);
         });
+    }
+
+    @Test
+    void publishUpdateLibraryEvent() throws ExecutionException, InterruptedException, JsonProcessingException {
+        var json = "{\"libraryEventId\":null,\"libraryEventType\":\"NEW\",\"book\":{\"bookId\":123,\"bookName\":\"Kafka Using Spring Boot\",\"bookAuthor\":\"Dilip\"}}";
+        var libraryEvent = mapper.readValue(json, LibraryEvent.class);
+        libraryEventsRepository.save(libraryEvent);
+
+        var updatedBook = Book.builder()
+                .bookId(456)
+                .bookName("Kafka Using Spring Boot 2.x")
+                .bookAuthor("Dilip")
+                .build();
+        libraryEvent.setLibraryEventType(LibraryEventType.UPDATE);
+        libraryEvent.setBook(updatedBook);
+
+        var updatedJson = mapper.writeValueAsString(libraryEvent);
+
+        kafkaTemplate.sendDefault(libraryEvent.getLibraryEventId(), updatedJson).get();
+
+        CountDownLatch latch = new CountDownLatch(1);
+        latch.await(3, TimeUnit.SECONDS);
+
+        var persisted = libraryEventsRepository.findById(libraryEvent.getLibraryEventId()).get();
+        assertEquals("Kafka Using Spring Boot 2.x", persisted.getBook().getBookName());
     }
 
 }
