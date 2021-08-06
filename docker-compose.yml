@@ -43,8 +43,6 @@ services:
   kafka-1:
     image: confluentinc/cp-kafka:latest
     network_mode: host
-    ports:
-      - "9092:9092"
     depends_on:
       - zookeeper-1
       - zookeeper-2
@@ -59,8 +57,6 @@ services:
   kafka-2:
     image: confluentinc/cp-kafka:latest
     network_mode: host
-    ports:
-      - "9093:9093"
     depends_on:
       - zookeeper-1
       - zookeeper-2
@@ -75,8 +71,6 @@ services:
   kafka-3:
     image: confluentinc/cp-kafka:latest
     network_mode: host
-    ports:
-      - "9094:9094"
     depends_on:
       - zookeeper-1
       - zookeeper-2
